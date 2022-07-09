@@ -158,9 +158,9 @@ window.addEventListener('DOMContentLoaded', () => {
     //MenuCard
 
     class MenuCard {
-        constructor(img, alt, subtitle, descr, price, parentSelector, ...classes) {
+        constructor(img, altimg, subtitle, descr, price, parentSelector, ...classes) {
             this.img = img;
-            this.alt = alt;
+            this.altimg = altimg;
             this.subtitle = subtitle;
             this.descr = descr;
             this.price = price;
@@ -192,17 +192,24 @@ window.addEventListener('DOMContentLoaded', () => {
             this.parent.append(elem);
         }
     }
-    new MenuCard("img/tabs/vegy.jpg", "vegy", 'Меню "Фитнес"',
-        "Меню 'Фитнес' - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новыйпродукт с оптимальной ценой и высоким качеством!",
-        10, ".menu .container", "menu__item").render();
 
-    new MenuCard("img/tabs/elite.jpg", "elite", 'Меню “Премиум”',
-        'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
-        19, ".menu .container", "menu__item").render();
+    const getResource = async (url) => {
+        const result = await fetch(url);
 
-    new MenuCard("img/tabs/post.jpg", "post", 'Меню "Постное"',
-        'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
-        12, ".menu .container", "menu__item").render();
+        if(!result.ok){
+           throw new Error(`Could not fetch ${url}, status: ${result.status}`);
+        }
+
+        return await result.json();
+    };
+
+    getResource('http://localhost:3000/menu')
+    .then(data => {
+        data.forEach(({img, altimg, title, descr, price}) => {
+            new MenuCard(img, altimg, title, descr,price, '.menu .container', 'menu__item').render();
+        });
+    });
+
 
 
     //Forms  
@@ -216,10 +223,20 @@ window.addEventListener('DOMContentLoaded', () => {
     };
 
     forms.forEach((item) => {
-        postData(item);
+        BindPostData(item);
     });
+    const postData = async (url,data) => {
+        const result = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-type': 'application/json'
+            },
+            body: data
+        });
+        return await result.json();
+    };
 
-    function postData(form) {
+    function BindPostData(form) {
         form.addEventListener('submit', (event) => {
             event.preventDefault();
 
@@ -234,20 +251,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
             const formData = new FormData(form);
 
-            const obj = {};
+            const json = JSON.stringify(Object.fromEntries(formData.entries()));
 
-            formData.forEach((key, value) => {
-                obj[key] = value;
-            });
-
-            fetch('server.php', {
-                method: 'POST',
-                headers: {
-                    'Content-type': 'application/json'
-                },
-                body: JSON.stringify(obj)
-            })
-            .then(data => data.text())
+            postData('http://localhost:3000/requests',json)
             .then(data => {
                 console.log(data);
                 showThanksModal(message.success);
@@ -281,7 +287,60 @@ window.addEventListener('DOMContentLoaded', () => {
             thanksModal.remove();
             prevModalDialog.classList.remove('hide');
             prevModalDialog.classList.add('active', 'fade');
-            hideModal();
+            closeModal();
         }, 4000);
     }
+
+   
+    //Slider
+
+    const slides = document.querySelectorAll('.offer__slide'),
+          prev = document.querySelector('.offer__slider-prev'),
+          next = document.querySelector('.offer__slider-next'),
+          total = document.querySelector('#total'),
+          current = document.querySelector('#current');
+
+    let slideIndex = 1;
+
+    showSlides(slideIndex);
+
+    if(slides.length < 10){
+        total.textContent = `0${slides.length}`;
+    } else {
+        total.textContent = slides.length;
+    }
+
+    function showSlides(n){
+
+        if(n > slides.length) {
+            slideIndex = 1;
+        }
+
+        if(n < 1){
+            slideIndex = slides.length;
+        }
+
+        slides.forEach((item) => {
+            item.style.display = 'none';
+        });
+
+        slides[slideIndex - 1].style.display = 'block'; 
+        if(slides.length < 10){
+            current.textContent = `0${slideIndex}`;
+        } else {
+            current.textContent = slideIndex;
+        }
+    }
+
+    function plusSlides(n) {
+        showSlides(slideIndex += n);
+    }
+
+    prev.addEventListener('click', () => {
+        plusSlides(-1);
+    });
+
+    next.addEventListener('click', () => {
+        plusSlides(1);
+    });
 });
