@@ -4,9 +4,7 @@
 /node_modules
 /.pnp
 .pnp.js
-.jshintrc
-db.json
-package.json
+
 
 
 # testing
