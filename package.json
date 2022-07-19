@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/redmex176/project_food/issues"
   },
-  "homepage": "https://github.com/redmex176/project_food#readme"
+  "homepage": "https://github.com/redmex176/project_food#readme",
+  "devDependencies": {
+    "webpack-cli": "^4.10.0"
+  }
 }
