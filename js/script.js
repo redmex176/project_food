@@ -1,3 +1,4 @@
+require('es6-promise').polyfill();
 import tabs from './modules/tabs';
 import timer from './modules/timer';
 import modal from './modules/modal';
@@ -5,9 +6,7 @@ import menuCards from './modules/menuCards';
 import forms from './modules/forms';
 import calc from './modules/calc';
 import slider from './modules/slider';
-import {
-    showModal
-} from './modules/modal';
+import {showModal} from './modules/modal';
 
 window.addEventListener('DOMContentLoaded', () => {
 
